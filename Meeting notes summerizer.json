@@ -1,0 +1,351 @@
+{
+  "name": "Meeting notes summerizer",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        -64,
+        0
+      ],
+      "id": "a50a3201-268d-4515-bebc-935b52122db0",
+      "name": "When chat message received",
+      "webhookId": "d3c09abf-b0da-4e7a-834b-a4ff6a48efa4"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are an expert meeting-notes assistant.\n\nGiven a meeting transcript, produce a concise, factual summary using only information explicitly stated in the transcript.\n\nExtract:\n1. **Summary** — 2–4 sentences covering the most important discussion points, priorities, constraints, and outcomes.\n2. **Decisions** — List explicit decisions made during the meeting.\n3. **Action items** — Extract every committed task with:\n   - **Owner**\n   - **Task**\n   - **Due**\n\nRules:\n- Do not invent or infer facts that are not supported by the transcript.\n- If no due date is given, write `none`.\n- If a relative due date is given (for example, “Thursday” or “Friday”), convert it to the corresponding calendar date using the meeting date in the transcript.\n- Treat statements such as “I’ll do it,” “I can take that,” or direct assignments that are accepted as action items.\n- Do not treat suggestions, discussion points, or unaccepted requests as action items.\n- Keep the summary concise and avoid repeating action items unnecessarily.\n- Preserve names, numbers, metrics, and dates accurately.\n- The whole summary should be atmost 80 words.\n\nUse exactly this output structure:\n\n**Summary**\n\n<concise summary>\n\n**Decisions**\n\n- <decision>\n- <decision>\n\n**Action items**\n\n- **Owner:** <name>  \n  **Task:** <task>  \n  **Due:** <date or none>\n\n- **Owner:** <name>  \n  **Task:** <task>  \n  **Due:** <date or none>\n\nIf there are no decisions, write:\n- None\n\nIf there are no action items, write:\n- None\n\nsample input and output for reference:\nInput:\n\"**Transcript · Customer escalation · Tue Oct 6**\nAttendees: Asha, Ben, Cara\n**Asha:** We processed 42 tickets this week.\n**Ben:** Decision: target 50 next week.\n**Cara:** I’ll publish the dashboard by Friday.\"\n\noutput:\n\"**Summary**\n42 tickets were processed this week. The team decided to target 50 next week.\n\n**Decisions**\n- Target 50 tickets next week.\n\n**Action items**\n- Cara — publish the dashboard — 2026-10-09\"\n\n\nMeeting transcript:\n<Use the input given by user in chat message>\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "75e5337d-ea91-499d-ab48-146160d6fd18",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        144,
+        224
+      ],
+      "id": "87198b75-e1c6-461e-8881-1b03fd64ccff",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "sessionid"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        304,
+        224
+      ],
+      "id": "ebd7b18e-3c2c-48fd-8693-f31bcb07ef8e",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "ccmsaVZkDur19TIe",
+          "mode": "list",
+          "cachedResultName": "Evals validation  set",
+          "cachedResultUrl": "/projects/mkQ6QQkz1UejhcCx/datatables/ccmsaVZkDur19TIe"
+        }
+      },
+      "type": "n8n-nodes-base.evaluationTrigger",
+      "typeVersion": 4.7,
+      "position": [
+        -272,
+        -176
+      ],
+      "id": "3f90dfd1-4af8-4741-9e09-bc7cb38d9100",
+      "name": "When fetching a dataset row"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0ddbf7a2-c004-4369-b0ca-88e9d023a1d5",
+              "name": "chatInput",
+              "value": "={{ $json.user_input }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -32,
+        -176
+      ],
+      "id": "f40e0570-638f-4188-b961-3996176d1f8f",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "checkIfEvaluating"
+      },
+      "type": "n8n-nodes-base.evaluation",
+      "typeVersion": 4.8,
+      "position": [
+        592,
+        0
+      ],
+      "id": "5d8c5376-27c7-4604-921b-989f784963ae",
+      "name": "Evaluation"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "ccmsaVZkDur19TIe",
+          "mode": "list",
+          "cachedResultName": "Evals validation  set",
+          "cachedResultUrl": "/projects/mkQ6QQkz1UejhcCx/datatables/ccmsaVZkDur19TIe"
+        },
+        "outputs": {
+          "values": [
+            {
+              "outputName": "actual_output",
+              "outputValue": "={{ $json.output }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.evaluation",
+      "typeVersion": 4.8,
+      "position": [
+        816,
+        -96
+      ],
+      "id": "91f2380b-7f64-4963-8b33-6c1c9c38399b",
+      "name": "Evaluation1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1152,
+        96
+      ],
+      "id": "d27d79d6-a9ce-457b-9ef4-552d81297970",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "setMetrics",
+        "expectedAnswer": "={{ $('When fetching a dataset row').item.json.expected_answer }}",
+        "actualAnswer": "={{ $('AI Agent').item.json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.evaluation",
+      "typeVersion": 4.8,
+      "position": [
+        1040,
+        -96
+      ],
+      "id": "9be076b9-20be-41d3-bedb-7c4513aa7bcc",
+      "name": "LLM as a Judge"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "ccmsaVZkDur19TIe",
+          "mode": "list",
+          "cachedResultName": "Evals validation  set",
+          "cachedResultUrl": "/projects/mkQ6QQkz1UejhcCx/datatables/ccmsaVZkDur19TIe"
+        },
+        "outputs": {
+          "values": [
+            {
+              "outputName": "correctness_score",
+              "outputValue": "={{ $json.Correctness }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.evaluation",
+      "typeVersion": 4.8,
+      "position": [
+        1408,
+        -96
+      ],
+      "id": "c64019a1-9187-42e0-a58f-f5b03235006e",
+      "name": "Evaluation2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When fetching a dataset row": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Evaluation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluation": {
+      "main": [
+        [
+          {
+            "node": "Evaluation1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluation1": {
+      "main": [
+        [
+          {
+            "node": "LLM as a Judge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "LLM as a Judge",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM as a Judge": {
+      "main": [
+        [
+          {
+            "node": "Evaluation2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "dc1aecf7-32b0-4ac3-b05c-2e25fbedfa15",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "44b67af4a27738ce330214aafa129ecc3932ee4f708ef4647f376c3145897917"
+  },
+  "nodeGroups": [],
+  "id": "01yQUisVKaALel1X",
+  "tags": []
+}
